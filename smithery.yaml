@@ -1,0 +1,66 @@
+version: 1
+
+runtime: "container"
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
+
+startCommand:
+  type: "http"
+
+configSchema:
+  type: "object"
+  properties:
+    computing_backend:
+      type: "string"
+      description: "Quantum computing backend (simulator, qasm_simulator, etc.)"
+      default: "simulator"
+      enum: ["simulator", "qasm_simulator", "statevector_simulator", "density_matrix_simulator"]
+    max_qubits:
+      type: "number"
+      description: "Maximum number of qubits for simulation"
+      default: 20
+      minimum: 1
+      maximum: 30
+    precision:
+      type: "string"
+      description: "Numerical precision for calculations"
+      default: "double"
+      enum: ["single", "double", "extended"]
+    enable_gpu:
+      type: "boolean"
+      description: "Enable GPU acceleration if available"
+      default: false
+    timeout_seconds:
+      type: "number"
+      description: "Maximum execution time for quantum calculations"
+      default: 300
+      minimum: 10
+      maximum: 1800
+    memory_limit_gb:
+      type: "number"
+      description: "Memory limit for quantum simulations in GB"
+      default: 4
+      minimum: 1
+      maximum: 16
+  required: ["computing_backend", "max_qubits"]
+  additionalProperties: false
+
+exampleConfig:
+  computing_backend: "simulator"
+  max_qubits: 20
+  precision: "double"
+  enable_gpu: false
+  timeout_seconds: 300
+  memory_limit_gb: 4
+
+description: "Advanced quantum systems MCP server for complex open and closed quantum systems calculations. Supports quantum circuits, many-body physics, quantum chemistry, and quantum machine learning."
+
+tags:
+  - "quantum-computing"
+  - "quantum-physics"
+  - "quantum-chemistry"
+  - "many-body-physics"
+  - "quantum-machine-learning"
+  - "simulation"
+  - "physics"

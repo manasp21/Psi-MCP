@@ -1,0 +1,42 @@
+{
+  "name": "psi-mcp",
+  "version": "1.0.0",
+  "description": "Advanced quantum systems MCP server for complex open and closed quantum systems calculations",
+  "main": "src/server.py",
+  "keywords": [
+    "quantum-computing",
+    "quantum-physics",
+    "quantum-chemistry",
+    "many-body-physics",
+    "quantum-machine-learning",
+    "mcp-server",
+    "smithery"
+  ],
+  "author": "Manas Pandey",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/manasp21/Psi-MCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/manasp21/Psi-MCP/issues"
+  },
+  "homepage": "https://github.com/manasp21/Psi-MCP#readme",
+  "engines": {
+    "python": ">=3.11"
+  },
+  "scripts": {
+    "dev": "python src/server.py",
+    "test": "pytest tests/",
+    "lint": "flake8 src/ tests/",
+    "format": "black src/ tests/ && isort src/ tests/",
+    "type-check": "mypy src/",
+    "build": "docker build -t psi-mcp .",
+    "start": "docker run -p 8000:8000 psi-mcp"
+  },
+  "smithery": {
+    "server": "psi-mcp",
+    "runtime": "container",
+    "category": "quantum-computing"
+  }
+}

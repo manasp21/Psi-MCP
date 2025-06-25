@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:smithery.ai)",
+      "WebFetch(domain:github.com)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": []
+  }
+}
