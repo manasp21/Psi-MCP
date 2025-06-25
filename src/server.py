@@ -53,8 +53,11 @@ async def lifespan(app: FastAPI):
         from quantum import initialize_backends
         await initialize_backends(config)
         logger.info("Quantum backends initialized successfully")
+    except ImportError as e:
+        logger.error(f"Failed to import quantum module: {e}")
     except Exception as e:
         logger.error(f"Failed to initialize quantum backends: {e}")
+        logger.info("Server will continue with limited quantum functionality")
     
     yield
     
@@ -115,10 +118,12 @@ async def create_quantum_circuit(
         if num_qubits > config.max_qubits:
             raise ValueError(f"Number of qubits ({num_qubits}) exceeds maximum ({config.max_qubits})")
         
-        from quantum.circuits import create_circuit
-        circuit = await create_circuit(num_qubits, circuit_type, backend or config.computing_backend)
-        
-        return f"Successfully created {circuit_type} quantum circuit with {num_qubits} qubits using {backend or config.computing_backend} backend."
+        try:
+            from quantum.circuits import create_circuit
+            circuit = await create_circuit(num_qubits, circuit_type, backend or config.computing_backend)
+            return f"Successfully created {circuit_type} quantum circuit with {num_qubits} qubits using {backend or config.computing_backend} backend."
+        except ImportError:
+            return f"Quantum circuit functionality not available - missing quantum computing libraries. Please install qiskit, cirq, or pennylane."
     
     except Exception as e:
         logger.error(f"Error creating quantum circuit: {e}")
@@ -177,17 +182,19 @@ async def solve_master_equation(
 ) -> str:
     """Solve the master equation for open quantum systems."""
     try:
-        from quantum.systems import solve_master_eq
-        result = await solve_master_eq(
-            hamiltonian,
-            collapse_operators,
-            initial_state,
-            time_span,
-            solver_method,
-            config.precision
-        )
-        
-        return f"Master equation solved successfully using {solver_method} method."
+        try:
+            from quantum.systems import solve_master_eq
+            result = await solve_master_eq(
+                hamiltonian,
+                collapse_operators,
+                initial_state,
+                time_span,
+                solver_method,
+                config.precision
+            )
+            return f"Master equation solved successfully using {solver_method} method."
+        except ImportError:
+            return f"Open quantum systems functionality not available - missing QuTiP library. Please install qutip."
     
     except Exception as e:
         logger.error(f"Error solving master equation: {e}")
@@ -201,14 +208,16 @@ async def visualize_quantum_state(
 ) -> str:
     """Visualize quantum states using various methods."""
     try:
-        from quantum.visualization import visualize_state
-        plot_data = await visualize_state(
-            state_definition,
-            visualization_type,
-            save_path
-        )
-        
-        return f"Visualization created successfully: {visualization_type}"
+        try:
+            from quantum.visualization import visualize_state
+            plot_data = await visualize_state(
+                state_definition,
+                visualization_type,
+                save_path
+            )
+            return f"Visualization created successfully: {visualization_type}"
+        except ImportError:
+            return f"Quantum visualization functionality not available - missing matplotlib and quantum libraries. Please install matplotlib, qutip, and quantum computing libraries."
     
     except Exception as e:
         logger.error(f"Error creating visualization: {e}")

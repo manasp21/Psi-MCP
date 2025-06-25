@@ -34,6 +34,21 @@ Psi-MCP is an advanced Model Context Protocol (MCP) server specifically designed
 - Docker (for containerized deployment)
 - Git
 
+### Core vs Optional Dependencies
+
+**Core Dependencies (always installed):**
+- FastAPI, Uvicorn (MCP server framework)
+- Qiskit, Cirq, PennyLane (quantum computing)
+- QuTiP (open quantum systems)
+- OpenFermion (quantum chemistry)
+- NumPy, SciPy, Matplotlib (numerical computing)
+
+**Optional Dependencies (install separately if needed):**
+- PySCF (advanced quantum chemistry)
+- TensorFlow Quantum (quantum ML)
+- NetKet (neural quantum states)
+- Additional quantum libraries
+
 ### Quick Start with Smithery
 
 ```bash

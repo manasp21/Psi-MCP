@@ -42,23 +42,18 @@ async def initialize_backends(config: Any) -> None:
     # Initialize Qiskit backends
     try:
         from qiskit import Aer
-        from qiskit.providers.fake_provider import FakeProvider
         
         # Add simulators
         _backends['qasm_simulator'] = Aer.get_backend('qasm_simulator')
         _backends['statevector_simulator'] = Aer.get_backend('statevector_simulator')
         _backends['unitary_simulator'] = Aer.get_backend('unitary_simulator')
         
-        # Add noise models for realistic simulation
-        fake_provider = FakeProvider()
-        fake_backends = fake_provider.backends()
-        if fake_backends:
-            _backends['fake_backend'] = fake_backends[0]
-        
         logger.info("Qiskit backends initialized")
         
     except ImportError as e:
         logger.warning(f"Failed to initialize Qiskit backends: {e}")
+    except Exception as e:
+        logger.warning(f"Error initializing Qiskit: {e}")
     
     # Initialize Cirq backends
     try:
@@ -68,24 +63,19 @@ async def initialize_backends(config: Any) -> None:
         
     except ImportError as e:
         logger.warning(f"Failed to initialize Cirq backends: {e}")
+    except Exception as e:
+        logger.warning(f"Error initializing Cirq: {e}")
     
     # Initialize PennyLane backends
     try:
         import pennylane as qml
         _backends['pennylane_default'] = qml.device('default.qubit', wires=config.max_qubits)
-        
-        # GPU backend if enabled
-        if config.enable_gpu:
-            try:
-                _backends['pennylane_gpu'] = qml.device('default.qubit.torch', wires=config.max_qubits)
-                logger.info("PennyLane GPU backend initialized")
-            except Exception:
-                logger.warning("PennyLane GPU backend not available")
-        
         logger.info("PennyLane backends initialized")
         
     except ImportError as e:
         logger.warning(f"Failed to initialize PennyLane backends: {e}")
+    except Exception as e:
+        logger.warning(f"Error initializing PennyLane: {e}")
     
     # Initialize QuTiP for open systems
     try:
@@ -94,15 +84,23 @@ async def initialize_backends(config: Any) -> None:
         
     except ImportError as e:
         logger.warning(f"Failed to initialize QuTiP: {e}")
+    except Exception as e:
+        logger.warning(f"Error initializing QuTiP: {e}")
     
     # Initialize quantum chemistry backends
     try:
         import openfermion
-        import pyscf
-        logger.info("Quantum chemistry backends initialized")
+        logger.info("OpenFermion initialized")
         
     except ImportError as e:
-        logger.warning(f"Failed to initialize quantum chemistry backends: {e}")
+        logger.warning(f"Failed to initialize OpenFermion: {e}")
+    except Exception as e:
+        logger.warning(f"Error initializing OpenFermion: {e}")
+    
+    # Add a default simulator if nothing else worked
+    if not _backends:
+        logger.warning("No quantum backends available, adding basic simulator")
+        _backends['basic_simulator'] = 'basic'
     
     _initialized = True
     logger.info(f"Quantum backends initialization complete. Available backends: {list(_backends.keys())}")
@@ -133,34 +131,67 @@ def list_backends() -> Dict[str, str]:
     return backend_info
 
 # Import submodules for easier access
+_submodules = {}
+
 try:
     from . import circuits
-    from . import systems
-    from . import algorithms
-    from . import chemistry
-    from . import many_body
-    from . import field_theory
-    from . import ml
-    from . import visualization
-    from . import utils
-    
-    logger.info("All quantum submodules imported successfully")
-    
+    _submodules['circuits'] = circuits
 except ImportError as e:
-    logger.warning(f"Some quantum submodules failed to import: {e}")
+    logger.warning(f"Failed to import circuits module: {e}")
+
+try:
+    from . import systems
+    _submodules['systems'] = systems
+except ImportError as e:
+    logger.warning(f"Failed to import systems module: {e}")
+
+try:
+    from . import algorithms
+    _submodules['algorithms'] = algorithms
+except ImportError as e:
+    logger.warning(f"Failed to import algorithms module: {e}")
+
+try:
+    from . import chemistry
+    _submodules['chemistry'] = chemistry
+except ImportError as e:
+    logger.warning(f"Failed to import chemistry module: {e}")
+
+try:
+    from . import many_body
+    _submodules['many_body'] = many_body
+except ImportError as e:
+    logger.warning(f"Failed to import many_body module: {e}")
+
+try:
+    from . import field_theory
+    _submodules['field_theory'] = field_theory
+except ImportError as e:
+    logger.warning(f"Failed to import field_theory module: {e}")
+
+try:
+    from . import ml
+    _submodules['ml'] = ml
+except ImportError as e:
+    logger.warning(f"Failed to import ml module: {e}")
+
+try:
+    from . import visualization
+    _submodules['visualization'] = visualization
+except ImportError as e:
+    logger.warning(f"Failed to import visualization module: {e}")
+
+try:
+    from . import utils
+    _submodules['utils'] = utils
+except ImportError as e:
+    logger.warning(f"Failed to import utils module: {e}")
+
+logger.info(f"Quantum submodules loaded: {list(_submodules.keys())}")
 
 # Export main functions
 __all__ = [
     'initialize_backends',
     'get_backend', 
     'list_backends',
-    'circuits',
-    'systems',
-    'algorithms',
-    'chemistry',
-    'many_body',
-    'field_theory',
-    'ml',
-    'visualization',
-    'utils',
-]
+] + list(_submodules.keys())
