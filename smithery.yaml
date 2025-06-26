@@ -10,49 +10,120 @@ startCommand:
 
 configSchema:
   type: "object"
+  required: []
+  additionalProperties: false
   properties:
-    computing_backend:
+    quantum_backend:
       type: "string"
-      description: "Quantum computing backend (simulator, qasm_simulator, etc.)"
-      default: "simulator"
-      enum: ["simulator", "qasm_simulator", "statevector_simulator", "density_matrix_simulator"]
+      description: "Primary quantum computing backend"
+      default: "auto"
+      enum: ["auto", "cpu", "gpu", "simulator", "qasm_simulator", "statevector_simulator", "density_matrix_simulator"]
+    computational_framework:
+      type: "string"
+      description: "Computational framework preference"
+      default: "jax"
+      enum: ["numpy", "jax", "qiskit", "cirq", "pennylane"]
     max_qubits:
-      type: "number"
-      description: "Maximum number of qubits for simulation"
-      default: 20
+      type: "integer"
+      description: "Maximum number of qubits for quantum circuits"
+      default: 25
       minimum: 1
-      maximum: 30
-    precision:
+      maximum: 50
+    max_sites:
+      type: "integer"
+      description: "Maximum number of sites for many-body systems"
+      default: 100
+      minimum: 2
+      maximum: 500
+    max_bond_dimension:
+      type: "integer"
+      description: "Maximum bond dimension for tensor networks (MPS/DMRG)"
+      default: 64
+      minimum: 2
+      maximum: 1024
+    svd_cutoff:
+      type: "number"
+      description: "SVD truncation cutoff for tensor decomposition"
+      default: 0.000000000001
+      minimum: 0.0000000000000001
+      maximum: 0.000001
+    float_precision:
       type: "string"
-      description: "Numerical precision for calculations"
-      default: "double"
-      enum: ["single", "double", "extended"]
+      description: "Floating point precision"
+      default: "float64"
+      enum: ["float32", "float64", "float128"]
+    temperature:
+      type: "number"
+      description: "Default temperature for calculations in Kelvin"
+      default: 1.0
+      minimum: 0.0
+      maximum: 1000.0
+    enabled_algorithms:
+      type: "array"
+      description: "List of enabled quantum algorithms"
+      items:
+        type: "string"
+        enum: ["exact_diagonalization", "dmrg", "excited_dmrg", "finite_temp_dmrg", "real_time_dmrg", "tebd", "iTEBD", "vumps", "monte_carlo", "vqe", "qaoa"]
+      default: ["exact_diagonalization", "dmrg", "tebd"]
+      uniqueItems: true
+    default_model:
+      type: "string"
+      description: "Default many-body Hamiltonian"
+      default: "heisenberg"
+      enum: ["heisenberg", "ising", "hubbard", "bose_hubbard", "kitaev", "xy_model"]
     enable_gpu:
       type: "boolean"
       description: "Enable GPU acceleration if available"
       default: false
-    timeout_seconds:
-      type: "number"
-      description: "Maximum execution time for quantum calculations"
-      default: 300
-      minimum: 10
-      maximum: 1800
-    memory_limit_gb:
-      type: "number"
-      description: "Memory limit for quantum simulations in GB"
+    enable_correlations:
+      type: "boolean"
+      description: "Enable correlation function calculations"
+      default: true
+    enable_entanglement:
+      type: "boolean"
+      description: "Enable entanglement analysis"
+      default: true
+    num_threads:
+      type: "integer"
+      description: "Number of CPU threads to use"
       default: 4
       minimum: 1
-      maximum: 16
-  required: ["computing_backend", "max_qubits"]
-  additionalProperties: false
+      maximum: 32
+    memory_limit_gb:
+      type: "number"
+      description: "Memory limit for simulations in GB"
+      default: 4
+      minimum: 1
+      maximum: 32
+    timeout_seconds:
+      type: "integer"
+      description: "Maximum execution time for calculations"
+      default: 600
+      minimum: 10
+      maximum: 3600
+    enable_visualization:
+      type: "boolean"
+      description: "Enable quantum state visualization"
+      default: true
 
 exampleConfig:
-  computing_backend: "simulator"
+  quantum_backend: "auto"
+  computational_framework: "jax"
   max_qubits: 20
-  precision: "double"
+  max_sites: 50
+  max_bond_dimension: 32
+  svd_cutoff: 0.0000000001
+  float_precision: "float64"
+  temperature: 1.0
+  enabled_algorithms: ["exact_diagonalization", "dmrg", "tebd"]
+  default_model: "heisenberg"
   enable_gpu: false
+  enable_correlations: true
+  enable_entanglement: true
+  num_threads: 2
+  memory_limit_gb: 2
   timeout_seconds: 300
-  memory_limit_gb: 4
+  enable_visualization: true
 
 description: "Advanced quantum systems MCP server for complex open and closed quantum systems calculations. Supports quantum circuits, many-body physics, quantum chemistry, and quantum machine learning."
 

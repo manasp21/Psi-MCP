@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:smithery.ai)",
       "WebFetch(domain:github.com)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "WebFetch(domain:glama.ai)",
+      "Bash(python:*)"
     ],
     "deny": []
   }

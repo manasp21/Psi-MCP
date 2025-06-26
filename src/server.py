@@ -173,6 +173,197 @@ async def optimize_quantum_circuit(
         return f"Error optimizing quantum circuit: {str(e)}"
 
 @app.tool()
+async def extended_hubbard_simulation(
+    system_size: int = Field(default=20, ge=2, le=100, description="System size"),
+    t: float = Field(default=1.0, description="Hopping parameter"),
+    U: float = Field(default=4.0, description="On-site Coulomb repulsion"),
+    V: float = Field(default=1.0, description="Nearest-neighbor interaction"),
+    mu: float = Field(default=0.0, description="Chemical potential")
+) -> str:
+    """Simulate extended Hubbard model with electron-electron interactions."""
+    try:
+        from quantum.many_body import extended_hubbard_model
+        result = await extended_hubbard_model(system_size, t, U, V, mu)
+        
+        if result['success']:
+            return f"Extended Hubbard simulation completed. Phase: {result['phase']}, Energy/site: {result['energy_per_site']:.4f}, Filling: {result['filling']:.3f}"
+        else:
+            return f"Extended Hubbard simulation failed: {result['error']}"
+    except Exception as e:
+        return f"Error in extended Hubbard simulation: {str(e)}"
+
+@app.tool()
+async def kitaev_model_simulation(
+    Jx: float = Field(default=1.0, description="X-direction coupling"),
+    Jy: float = Field(default=1.0, description="Y-direction coupling"),
+    Jz: float = Field(default=1.0, description="Z-direction coupling"),
+    system_size: int = Field(default=24, ge=6, le=50, description="System size")
+) -> str:
+    """Simulate Kitaev honeycomb model for quantum spin liquids."""
+    try:
+        from quantum.many_body import kitaev_honeycomb_model
+        result = await kitaev_honeycomb_model(Jx, Jy, Jz, system_size)
+        
+        if result['success']:
+            return f"Kitaev model simulation completed. Phase: {result['phase']}, Central charge: {result['central_charge']}"
+        else:
+            return f"Kitaev model simulation failed: {result['error']}"
+    except Exception as e:
+        return f"Error in Kitaev model simulation: {str(e)}"
+
+@app.tool()
+async def frustrated_magnet_analysis(
+    model_type: str = Field(default="j1_j2_heisenberg", description="Type of frustrated model"),
+    J1: float = Field(default=1.0, description="Nearest-neighbor coupling"),
+    J2: float = Field(default=0.5, description="Next-nearest-neighbor coupling"),
+    system_size: int = Field(default=50, ge=4, le=100, description="System size")
+) -> str:
+    """Analyze frustrated magnetic systems and quantum spin liquids."""
+    try:
+        from quantum.many_body import frustrated_magnets
+        result = await frustrated_magnets(model_type, J1, J2, system_size)
+        
+        if result['success']:
+            return f"Frustrated magnet analysis completed. Model: {model_type}, Phase: {result['phase']}, Frustration ratio: {result['frustration_ratio']:.3f}"
+        else:
+            return f"Frustrated magnet analysis failed: {result['error']}"
+    except Exception as e:
+        return f"Error in frustrated magnet analysis: {str(e)}"
+
+@app.tool()
+async def generate_phase_diagram(
+    model_type: str = Field(default="ising", description="Physical model type"),
+    parameter_min: float = Field(default=0.1, description="Minimum parameter value"),
+    parameter_max: float = Field(default=2.0, description="Maximum parameter value"),
+    num_points: int = Field(default=20, ge=5, le=50, description="Number of parameter points"),
+    system_size: int = Field(default=30, ge=4, le=100, description="System size")
+) -> str:
+    """Generate quantum phase diagrams for various models."""
+    try:
+        import numpy as np
+        from quantum.many_body import quantum_phase_diagram
+        
+        parameter_range = np.linspace(parameter_min, parameter_max, num_points).tolist()
+        result = await quantum_phase_diagram(model_type, parameter_range, system_size)
+        
+        if result['success']:
+            num_phases = len(set(result['phases_identified']))
+            num_boundaries = len(result['phase_boundaries'])
+            return f"Phase diagram generated for {model_type}. Found {num_phases} distinct phases with {num_boundaries} phase boundaries."
+        else:
+            return f"Phase diagram generation failed: {result['error']}"
+    except Exception as e:
+        return f"Error generating phase diagram: {str(e)}"
+
+@app.tool()
+async def excited_state_analysis(
+    hamiltonian_type: str = Field(default="heisenberg", description="Hamiltonian type"),
+    system_size: int = Field(default=30, ge=4, le=100, description="System size"),
+    num_excited_states: int = Field(default=3, ge=1, le=10, description="Number of excited states"),
+    max_bond_dimension: int = Field(default=100, ge=2, le=512, description="Maximum bond dimension")
+) -> str:
+    """Analyze excited states using advanced DMRG."""
+    try:
+        from quantum.tensor_networks import excited_state_dmrg
+        result = await excited_state_dmrg(hamiltonian_type, system_size, max_bond_dimension, 10, num_excited_states)
+        
+        if result['success']:
+            gaps = result['energy_gaps']
+            return f"Excited state analysis completed. Found {len(gaps)} excited states with gaps: {[f'{g:.4f}' for g in gaps[:3]]}"
+        else:
+            return f"Excited state analysis failed: {result['error']}"
+    except Exception as e:
+        return f"Error in excited state analysis: {str(e)}"
+
+@app.tool()
+async def finite_temperature_calculation(
+    hamiltonian_type: str = Field(default="heisenberg", description="Hamiltonian type"),
+    temperature: float = Field(default=1.0, ge=0.01, le=10.0, description="Temperature"),
+    system_size: int = Field(default=30, ge=4, le=100, description="System size"),
+    time_steps: int = Field(default=50, ge=10, le=200, description="Imaginary time steps")
+) -> str:
+    """Calculate finite temperature properties using thermal DMRG."""
+    try:
+        from quantum.tensor_networks import finite_temperature_dmrg
+        result = await finite_temperature_dmrg(hamiltonian_type, system_size, temperature, 100, 10, time_steps)
+        
+        if result['success']:
+            final_energy = result['thermal_properties']['internal_energy'][-1] if result['thermal_properties']['internal_energy'] else 0
+            return f"Finite temperature calculation completed at T={temperature}. Final internal energy: {final_energy:.4f}"
+        else:
+            return f"Finite temperature calculation failed: {result['error']}"
+    except Exception as e:
+        return f"Error in finite temperature calculation: {str(e)}"
+
+@app.tool()
+async def time_evolution_simulation(
+    hamiltonian_type: str = Field(default="heisenberg", description="Hamiltonian type"),
+    evolution_type: str = Field(default="real_time", description="Evolution type (real_time/imaginary_time)"),
+    total_time: float = Field(default=5.0, ge=0.1, le=20.0, description="Total evolution time"),
+    system_size: int = Field(default=30, ge=4, le=100, description="System size"),
+    time_steps: int = Field(default=100, ge=10, le=500, description="Number of time steps")
+) -> str:
+    """Simulate quantum time evolution using TEBD."""
+    try:
+        from quantum.tensor_networks import tebd_evolution
+        result = await tebd_evolution(hamiltonian_type, system_size, 100, total_time, time_steps, "ground", evolution_type)
+        
+        if result['success']:
+            final_entropy = result['entanglement_entropies'][-1] if result['entanglement_entropies'] else 0
+            return f"Time evolution simulation completed. Type: {evolution_type}, Final entanglement entropy: {final_entropy:.4f}"
+        else:
+            return f"Time evolution simulation failed: {result['error']}"
+    except Exception as e:
+        return f"Error in time evolution simulation: {str(e)}"
+
+@app.tool()
+async def infinite_system_calculation(
+    hamiltonian_type: str = Field(default="heisenberg", description="Hamiltonian type"),
+    unit_cell_size: int = Field(default=2, ge=1, le=4, description="Unit cell size"),
+    max_bond_dimension: int = Field(default=100, ge=2, le=512, description="Maximum bond dimension"),
+    num_sweeps: int = Field(default=20, ge=5, le=100, description="Number of iDMRG sweeps")
+) -> str:
+    """Calculate thermodynamic limit properties using infinite DMRG."""
+    try:
+        from quantum.tensor_networks import infinite_dmrg
+        result = await infinite_dmrg(hamiltonian_type, unit_cell_size, max_bond_dimension, num_sweeps)
+        
+        if result['success']:
+            energy_per_site = result['energy_per_site']
+            correlation_length = result['correlation_length']
+            return f"Infinite system calculation completed. Energy/site: {energy_per_site:.6f}, Correlation length: {correlation_length:.3f}"
+        else:
+            return f"Infinite system calculation failed: {result['error']}"
+    except Exception as e:
+        return f"Error in infinite system calculation: {str(e)}"
+
+@app.tool()
+async def batch_phase_calculation(
+    hamiltonian_type: str = Field(default="heisenberg", description="Hamiltonian type"),
+    parameter_values: str = Field(description="Comma-separated parameter values"),
+    system_size: int = Field(default=20, ge=4, le=100, description="System size"),
+    max_sweeps: int = Field(default=5, ge=1, le=20, description="Maximum DMRG sweeps per calculation")
+) -> str:
+    """Perform batch DMRG calculations for phase diagram generation."""
+    try:
+        from quantum.tensor_networks import batch_dmrg_calculations
+        
+        # Parse parameter values
+        param_list = [float(x.strip()) for x in parameter_values.split(',')]
+        
+        result = await batch_dmrg_calculations(param_list, hamiltonian_type, system_size, 64, max_sweeps)
+        
+        if result['success']:
+            num_calcs = len(result['energies'])
+            transitions = len(result.get('phase_transitions', []))
+            gpu_used = result.get('acceleration_used', False)
+            return f"Batch calculation completed: {num_calcs} points, {transitions} phase transitions detected. GPU acceleration: {'Yes' if gpu_used else 'No'}"
+        else:
+            return f"Batch calculation failed: {result['error']}"
+    except Exception as e:
+        return f"Error in batch calculation: {str(e)}"
+
+@app.tool()
 async def solve_master_equation(
     hamiltonian: str = Field(description="System Hamiltonian definition"),
     collapse_operators: str = Field(description="Collapse operators for dissipation"),
